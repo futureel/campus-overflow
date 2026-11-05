@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../auth';
+import { BountyDialog, type BountyValue } from '../components/BountyDialog';
+import { MarkdownEditor } from '../components/MarkdownEditor';
 import type { QuestionDetail } from '../types';
 
 export function QuestionDetailPage() {
@@ -11,6 +13,7 @@ export function QuestionDetailPage() {
   const [q, setQ] = useState<QuestionDetail | null>(null);
   const [related, setRelated] = useState<{ id: number; title: string }[]>([]);
   const [draft, setDraft] = useState('');
+  const [bountyOpen, setBountyOpen] = useState(false);
   const [error, setError] = useState('');
 
   const load = useCallback(() => {
@@ -49,11 +52,7 @@ export function QuestionDetailPage() {
             <div className="tagrow">{q.tags.map((t) => <span key={t} className="tag">{t}</span>)}</div>
             <CommentList comments={q.comments} targetType="QUESTION" targetId={q.id} onDone={load} canComment={!!me} />
             {canManage && (
-              <button className="link" onClick={() => {
-                const points = Number(prompt('悬赏积分（10–500）', '50'));
-                if (points) act(() => api.bounty(q.id, points, 7));
-              }}>发起悬赏
-              </button>
+              <button className="link" onClick={() => setBountyOpen(true)}>发起悬赏</button>
             )}
           </div>
         </div>
@@ -87,8 +86,12 @@ export function QuestionDetailPage() {
         {me ? (
           <section className="answer-form">
             <h3>写回答</h3>
-            <textarea rows={8} value={draft} onChange={(e) => setDraft(e.target.value)}
-                      placeholder="支持 Markdown，代码请使用 ``` 包裹" />
+            <MarkdownEditor
+              value={draft}
+              onChange={setDraft}
+              rows={8}
+              placeholder={'支持 Markdown，代码请使用 ``` 包裹；右侧（手机上切到「预览」）可实时看效果'}
+            />
             <button className="primary" onClick={() => act(async () => {
               await api.answer(q.id, draft);
               setDraft('');
@@ -97,6 +100,15 @@ export function QuestionDetailPage() {
           </section>
         ) : <p className="muted"><Link to="/login">登录</Link>后可以回答与投票。</p>}
         {error && <p className="error">{error}</p>}
+        {bountyOpen && (
+          <BountyDialog
+            onCancel={() => setBountyOpen(false)}
+            onConfirm={(value: BountyValue) => {
+              setBountyOpen(false);
+              act(() => api.bounty(q.id, value.points, value.days));
+            }}
+          />
+        )}
       </article>
 
       <aside>
