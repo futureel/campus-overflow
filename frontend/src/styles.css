@@ -23,7 +23,7 @@ aside { background: #fff; border: 1px solid var(--line); border-radius: 8px; pad
 
 .toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
 .toolbar input[type=text], .toolbar input:not([type]) { flex: 1; min-width: 220px; }
-input, textarea, select { padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; font: inherit; background: #fff; }
+input, textarea, select { padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; font: inherit; background: #fff; max-width: 100%; width: 100%; }
 button { font: inherit; padding: 7px 12px; border: 1px solid var(--line); background: #fff; border-radius: 6px; cursor: pointer; }
 button:hover { border-color: var(--brand); }
 button.primary, a.primary { background: var(--brand); color: #fff; border-color: var(--brand); padding: 8px 14px; border-radius: 6px; }
@@ -58,8 +58,9 @@ article h1 { font-size: 24px; margin-bottom: 4px; }
 .answer-form { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 16px; }
 .answer-form textarea { width: 100%; margin-bottom: 8px; }
 
-.form-page { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+.form-page { max-width: 760px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: 12px; }
 .form-page.narrow { max-width: 420px; }
+.login-form { display: flex; flex-direction: column; gap: 12px; }
 .form-page label { display: flex; flex-direction: column; gap: 4px; color: var(--muted); font-size: 14px; }
 .form-page input, .form-page textarea, .form-page select { color: var(--fg); font-size: 15px; }
 .tabs { display: flex; gap: 8px; }
@@ -71,3 +72,80 @@ article h1 { font-size: 24px; margin-bottom: 4px; }
 .plain li { padding: 6px 0; border-bottom: 1px solid var(--line); }
 .muted { color: var(--muted); }
 .error { color: var(--danger); }
+
+/* ---------- Markdown 编辑器：桌面左右分栏，窄屏切页签 ---------- */
+.md-editor { display: flex; flex-direction: column; gap: 8px; }
+.md-tabs { display: none; gap: 8px; }
+.md-tabs button { flex: 1; }
+.md-panes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: start; }
+.md-panes textarea { width: 100%; min-height: 200px; resize: vertical; }
+.md-panes .preview {
+  background: #fff; border: 1px solid var(--line); border-radius: 6px;
+  padding: 10px 12px; min-height: 200px; overflow-x: auto; line-height: 1.65;
+}
+.preview h1, .preview h2, .preview h3 { font-size: 18px; margin: 12px 0 6px; }
+.preview p { margin: 6px 0; }
+.preview ul { padding-left: 20px; margin: 6px 0; }
+.preview pre { background: #f6f8fa; padding: 10px; border-radius: 6px; overflow-x: auto; }
+.preview code { background: #f6f8fa; padding: 1px 4px; border-radius: 3px; font-family: ui-monospace, Menlo, Consolas, monospace; }
+.preview blockquote { margin: 8px 0; padding-left: 10px; border-left: 3px solid var(--line); color: var(--muted); }
+.preview a { word-break: break-all; }
+
+/* ---------- 悬赏弹窗 ---------- */
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(15, 23, 42, .45);
+  display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 50;
+}
+.modal {
+  background: #fff; border-radius: 10px; padding: 18px;
+  width: min(420px, 100%); display: flex; flex-direction: column; gap: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .18);
+}
+.modal h3 { margin: 0; font-size: 18px; }
+.modal label { display: flex; flex-direction: column; gap: 6px; color: var(--muted); font-size: 14px; }
+.modal input[type=range] { width: 100%; padding: 0; border: none; background: none; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.bounty-row { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 14px; }
+
+/* ---------- 右上角实时提醒 ---------- */
+.toasts {
+  position: fixed; top: 64px; right: 16px; z-index: 60;
+  display: flex; flex-direction: column; gap: 8px;
+  width: min(360px, calc(100vw - 32px));
+}
+.toast {
+  display: flex; align-items: center; gap: 8px;
+  background: #fff; border: 1px solid var(--line); border-left: 3px solid var(--brand);
+  border-radius: 8px; padding: 10px 12px; font-size: 14px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .1);
+}
+.toast a { flex: 1; }
+
+/* ---------- 移动端适配 ---------- */
+.topbar .username { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+@media (max-width: 720px) {
+  .md-tabs { display: flex; }                 /* 窄屏才需要页签切换 */
+  .md-panes { grid-template-columns: 1fr; }   /* 单列，避免两栏挤成一条 */
+  .md-panes .pane.md-hidden { display: none; }
+}
+
+@media (max-width: 640px) {
+  main { padding: 16px 12px; }
+  .topbar { flex-wrap: wrap; gap: 10px; padding: 10px 12px; }
+  .topbar nav { gap: 10px; flex-wrap: wrap; }
+  .spacer { display: none; }
+  .topbar .user { margin-left: auto; gap: 6px; }
+  .role { display: none; }
+  .qlist li { flex-direction: column; gap: 8px; padding: 12px; }
+  .stats { flex-direction: row; flex-wrap: wrap; gap: 12px; min-width: 0; text-align: left; }
+  .post { padding: 12px; gap: 10px; }
+  .votebox button { padding: 6px 10px; }
+  .layout { gap: 14px; }
+  article h1 { font-size: 20px; }
+  .form-page { gap: 10px; }
+  input, textarea, select { font-size: 16px; } /* 小于 16px 时 iOS 聚焦会放大页面 */
+  button { min-height: 40px; }
+  .toasts { top: auto; bottom: 12px; left: 12px; right: 12px; width: auto; }
+  .modal { padding: 16px; }
+}
