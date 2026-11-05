@@ -2,7 +2,7 @@ package com.campusoverflow.discovery.domain.search;
 
 import com.campusoverflow.shared.domain.BusinessRuleException;
 import com.campusoverflow.shared.page.PageRequest;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -36,13 +36,23 @@ public record SearchQuery(String keyword, Long courseId, String tag, SearchSort 
         page = page == null ? new PageRequest(1, 20) : page;
     }
 
+    /** 规范化后的词项：空白切分、转小写、去重、最多 {@value #MAX_TERMS} 个，保持出现顺序。 */
     public List<String> terms() {
-        // TODO(S3)：实现 SearchQuery.terms——参考领域单元测试与 arc42 文档中的业务规则
-        throw new UnsupportedOperationException("TODO(S3)：SearchQuery.terms 尚未实现");
+        return keyword == null ? List.of() : terms(keyword);
     }
 
     private static List<String> terms(String keyword) {
-        // TODO(S3)：实现 SearchQuery.terms——参考领域单元测试与 arc42 文档中的业务规则
-        throw new UnsupportedOperationException("TODO(S3)：SearchQuery.terms 尚未实现");
+        List<String> result = new ArrayList<>();
+        for (String part : keyword.strip().split("\\s+")) {
+            String term = part.strip().toLowerCase(Locale.ROOT);
+            if (term.isEmpty() || result.contains(term)) {
+                continue;
+            }
+            result.add(term);
+            if (result.size() >= MAX_TERMS) {
+                break;
+            }
+        }
+        return List.copyOf(result);
     }
 }

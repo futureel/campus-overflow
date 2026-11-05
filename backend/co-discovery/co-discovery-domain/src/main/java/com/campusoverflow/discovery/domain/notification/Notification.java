@@ -1,5 +1,6 @@
 package com.campusoverflow.discovery.domain.notification;
 
+import com.campusoverflow.shared.domain.BusinessRuleException;
 import com.campusoverflow.shared.domain.ForbiddenException;
 import java.time.Instant;
 import java.util.Objects;
@@ -30,8 +31,14 @@ public class Notification {
 
     public static Notification create(long recipientId, NotificationType type, String title, String link,
                                       String sourceEventId, Instant now) {
-        // TODO(S3)：实现 Notification.create——参考领域单元测试与 arc42 文档中的业务规则
-        throw new UnsupportedOperationException("TODO(S3)：Notification.create 尚未实现");
+        if (recipientId <= 0) {
+            throw new BusinessRuleException("DIS-1101", "通知接收人无效");
+        }
+        if (title == null || title.isBlank()) {
+            throw new BusinessRuleException("DIS-1102", "通知标题不能为空");
+        }
+        return new Notification(null, recipientId, type, title.strip(), link, sourceEventId, false,
+                now == null ? Instant.now() : now);
     }
 
     public static Notification reconstitute(Long id, long recipientId, NotificationType type, String title,
@@ -39,9 +46,12 @@ public class Notification {
         return new Notification(id, recipientId, type, title, link, sourceEventId, read, createdAt);
     }
 
+    /** 只有接收人本人可以标记已读；重复标记是幂等的。 */
     public void markRead(long actorId) {
-        // TODO(S3)：实现 Notification.markRead——参考领域单元测试与 arc42 文档中的业务规则
-        throw new UnsupportedOperationException("TODO(S3)：Notification.markRead 尚未实现");
+        if (actorId != recipientId) {
+            throw new ForbiddenException("DIS-1403", "只有通知接收人可以标记已读");
+        }
+        this.read = true;
     }
 
     public void assignId(long id) {

@@ -28,13 +28,36 @@ public class DiscoveryQueryService {
         this.identity = identity;
     }
 
+    /** 搜索：命中结果按页返回，作者信息批量补齐（避免 N+1）。 */
     public PageResult<SearchResultView> search(SearchQuery query) {
-        // TODO(S3)：实现 DiscoveryQueryService.search——参考领域单元测试与 arc42 文档中的业务规则
-        throw new UnsupportedOperationException("TODO(S3)：DiscoveryQueryService.search 尚未实现");
+        PageResult<SearchHit> hits = search.search(query);
+        Map<Long, UserSummary> authors = identity.findUsers(
+                hits.items().stream().map(SearchHit::authorId).distinct().toList());
+        return hits.map(hit -> toView(hit, authors.get(hit.authorId())));
     }
 
+    /** 相关问题：先取自身标签，再按 Jaccard 相似度排序，最多返回 limit 条。 */
     public List<RelatedQuestionView> related(long questionId, int limit) {
-        // TODO(S3)：实现 DiscoveryQueryService.related——参考领域单元测试与 arc42 文档中的业务规则
-        throw new UnsupportedOperationException("TODO(S3)：DiscoveryQueryService.related 尚未实现");
+        if (limit <= 0) {
+            return List.of();
+        }
+        List<String> ownTags = index.findTags(questionId);
+        if (ownTags.isEmpty()) {
+            return List.of();
+        }
+        List<SearchIndex.RelatedCandidate> candidates =
+                index.findCandidatesSharingTags(questionId, ownTags, Math.max(limit * 3, limit));
+        return RelatedQuestionPolicy.rank(candidates, ownTags.size(), limit).stream()
+                .map(c -> new RelatedQuestionView(c.questionId(), c.title(), c.answerCount(), c.accepted(),
+                        RelatedQuestionPolicy.jaccard(c.sharedTags(), ownTags.size(), c.tagCount())))
+                .toList();
+    }
+
+    private static SearchResultView toView(SearchHit hit, UserSummary author) {
+        SearchResultView.Author view = author == null
+                ? new SearchResultView.Author(hit.authorId(), "已注销用户", "STUDENT", false)
+                : new SearchResultView.Author(author.id(), author.displayName(), author.role().name(), author.verified());
+        return new SearchResultView(hit.questionId(), hit.title(), hit.snippet(), hit.tags(), hit.courseId(), view,
+                hit.score(), hit.answerCount(), hit.accepted(), hit.bountyOpen(), hit.createdAt());
     }
 }
