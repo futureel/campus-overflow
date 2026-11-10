@@ -6,8 +6,14 @@ import type { Notification } from '../types';
 export function NotificationsPage() {
   const [items, setItems] = useState<Notification[]>([]);
 
-  const load = () => api.notifications().then((p) => setItems(p.items)).catch(() => undefined);
-  useEffect(() => { load(); }, []);
+  const load = () =>
+    api
+      .notifications()
+      .then((p) => setItems(p.items))
+      .catch(() => undefined);
+  useEffect(() => {
+    load();
+  }, []);
 
   return (
     <div className="form-page">

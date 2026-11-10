@@ -1,0 +1,6 @@
+# pre-commit 用户钩子（husky v9，由 _/h 用 sh -e 调用）
+# Sprint 2：提交前对暂存文件跑 ESLint 自动修复 + Prettier 格式化
+# 用 node 直接调用项目本地 lint-staged，避免依赖 npx（Windows/Git Bash 下仅有 npx.cmd）
+hook_dir=$(dirname "$0")
+cd "$hook_dir/.."
+node node_modules/lint-staged/bin/lint-staged.js
