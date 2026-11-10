@@ -1,19 +1,12 @@
 package com.campusoverflow.qa.application.command;
 
 import com.campusoverflow.identity.api.IdentityApi;
-import com.campusoverflow.qa.api.event.AnswerAcceptedEvent;
-import com.campusoverflow.qa.api.event.AnswerEndorsedEvent;
-import com.campusoverflow.qa.api.event.AnswerSubmittedEvent;
-import com.campusoverflow.qa.api.event.ContentDeletedEvent;
 import com.campusoverflow.qa.application.port.QuestionListCache;
 import com.campusoverflow.qa.domain.Answer;
 import com.campusoverflow.qa.domain.AnswerRepository;
-import com.campusoverflow.qa.domain.MarkdownBody;
 import com.campusoverflow.qa.domain.Question;
 import com.campusoverflow.qa.domain.QuestionRepository;
 import com.campusoverflow.shared.audit.AuditTrail;
-import com.campusoverflow.shared.domain.NotFoundException;
-import com.campusoverflow.shared.event.EventIds;
 import com.campusoverflow.shared.event.IntegrationEventPublisher;
 import com.campusoverflow.shared.security.Actor;
 import java.time.Clock;

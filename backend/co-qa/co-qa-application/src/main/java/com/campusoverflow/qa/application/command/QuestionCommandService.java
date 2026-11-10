@@ -1,26 +1,15 @@
 package com.campusoverflow.qa.application.command;
 
 import com.campusoverflow.identity.api.IdentityApi;
-import com.campusoverflow.qa.api.event.ContentDeletedEvent;
-import com.campusoverflow.qa.api.event.QuestionEditedEvent;
-import com.campusoverflow.qa.api.event.QuestionPostedEvent;
 import com.campusoverflow.qa.application.port.ContentRenderer;
 import com.campusoverflow.qa.application.port.QuestionListCache;
-import com.campusoverflow.qa.domain.MarkdownBody;
 import com.campusoverflow.qa.domain.Question;
 import com.campusoverflow.qa.domain.QuestionRepository;
 import com.campusoverflow.qa.domain.TagRepository;
-import com.campusoverflow.qa.domain.Tags;
-import com.campusoverflow.qa.domain.Title;
 import com.campusoverflow.shared.audit.AuditTrail;
-import com.campusoverflow.shared.domain.NotFoundException;
-import com.campusoverflow.shared.event.EventIds;
 import com.campusoverflow.shared.event.IntegrationEventPublisher;
 import com.campusoverflow.shared.security.Actor;
 import java.time.Clock;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

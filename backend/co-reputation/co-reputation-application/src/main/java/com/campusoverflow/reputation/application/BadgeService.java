@@ -1,10 +1,7 @@
 package com.campusoverflow.reputation.application;
 
-import com.campusoverflow.reputation.api.event.BadgeAwardedEvent;
-import com.campusoverflow.reputation.domain.BadgeAward;
 import com.campusoverflow.reputation.domain.BadgeRepository;
 import com.campusoverflow.reputation.domain.BadgeType;
-import com.campusoverflow.shared.event.EventIds;
 import com.campusoverflow.shared.event.IntegrationEventPublisher;
 import java.time.Clock;
 import org.springframework.stereotype.Service;

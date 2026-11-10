@@ -1,6 +1,5 @@
 package com.campusoverflow.discovery.domain.notification;
 
-import com.campusoverflow.shared.domain.ForbiddenException;
 import java.time.Instant;
 import java.util.Objects;
 

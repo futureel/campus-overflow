@@ -1,10 +1,6 @@
 package com.campusoverflow.reputation.domain;
 
-import com.campusoverflow.shared.domain.BusinessRuleException;
-import com.campusoverflow.shared.domain.ConflictException;
-import com.campusoverflow.shared.domain.ForbiddenException;
 import com.campusoverflow.shared.security.Actor;
-import java.time.Duration;
 import java.time.Instant;
 
 /**

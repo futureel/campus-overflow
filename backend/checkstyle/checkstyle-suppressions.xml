@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suppressions PUBLIC
+        "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+        "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+
+<!--
+  测试源码命名豁免。
+  原因：
+  1) ArchUnit 的 @ArchTest 字段/方法按框架约定必须使用蛇形小写（字段名即规则名，会出现在架构报告中），
+     不满足 ConstantName 的大写要求；
+  2) JUnit 5 测试方法常用中文或蛇形长名表达测试意图（如「未登录用户访问写接口被拒绝」），
+     不满足 MethodName 的驼峰要求。
+  其余规则（未使用导入、花括号、空白、行长度等）对测试代码仍然生效。
+-->
+<suppressions>
+    <suppress files=".*[\\/]src[\\/]test[\\/].*" checks="ConstantName"/>
+    <suppress files=".*[\\/]src[\\/]test[\\/].*" checks="MethodName"/>
+</suppressions>

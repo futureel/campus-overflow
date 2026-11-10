@@ -1,7 +1,5 @@
 package com.campusoverflow.qa.domain;
 
-import com.campusoverflow.shared.domain.BusinessRuleException;
-import com.campusoverflow.shared.domain.Guard;
 import java.time.Instant;
 
 /** 评论：挂在问题或回答下，支持一层“二级回复”。 */

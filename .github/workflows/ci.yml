@@ -1,6 +1,11 @@
 # CampusOverflow 持续集成流水线（对应 arc42 第 10 章适应度函数与第 7 章部署视图）
 name: CI
 
+# SONAR_TOKEN 在仓库 Settings → Secrets and variables → Actions 中配置；
+# 未配置时 Sonar 扫描步骤自动跳过，其余门禁照常执行。
+env:
+  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
 on:
   push:
     branches: [main, develop, "sprint/**"]
@@ -21,7 +26,11 @@ jobs:
           distribution: temurin
           cache: maven
 
-      # 阶段 1：编译（模块依赖不成环由 Maven 保证）
+      # 阶段 0：Checkstyle 静态检查（绑定 validate 阶段，零违规才继续）
+      - name: Checkstyle 静态检查
+        run: mvn -B -f backend/pom.xml validate
+
+      # 阶段 1：编译（模块依赖不成环由 Maven 保证；validate 中的 Checkstyle 会再次执行）
       - name: 编译
         run: mvn -B -f backend/pom.xml clean compile
 
@@ -33,13 +42,18 @@ jobs:
       - name: 架构约束检查
         run: mvn -B -f backend/pom.xml test -pl co-bootstrap -Dtest=ArchitectureTest -DfailIfNoTests=false
 
-      # 阶段 4：领域层覆盖率门禁（低于阈值直接失败）
+      # 阶段 4：领域层覆盖率门禁（低于阈值直接失败，同时生成 JaCoCo 报告供 Sonar 读取）
       - name: 覆盖率门禁
         run: mvn -B -f backend/pom.xml verify -DskipITs -Djacoco.skip=false
 
       # 阶段 5：集成测试（Testcontainers 拉起真实 MySQL + Redis）
       - name: 集成测试
         run: mvn -B -f backend/pom.xml verify -Dsurefire.skip=true
+
+      # 阶段 6：SonarCloud 代码质量扫描（仅在配置了 SONAR_TOKEN 时执行，质量门禁见 SonarCloud 配置）
+      - name: SonarCloud 静态扫描
+        if: env.SONAR_TOKEN != ''
+        run: mvn -B -f backend/pom.xml sonar:sonar
 
       - name: 归档测试报告
         if: always()
@@ -59,6 +73,18 @@ jobs:
       - name: 安装依赖
         working-directory: frontend
         run: npm install --no-audit --no-fund
+
+      # ESLint + Prettier：ESLint 配置随 Sprint 2 PR 合并后存在；配置缺失时安全跳过，避免阻断独立分支
+      - name: 静态检查（ESLint + Prettier）
+        working-directory: frontend
+        run: |
+          if [ -f eslint.config.js ]; then
+            npm run lint
+            npm run format:check
+          else
+            echo "跳过：ESLint/Prettier 配置将在 Sprint 2 PR 合并后启用"
+          fi
+
       - name: 类型检查
         working-directory: frontend
         run: npm run typecheck

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/xsd/maven-4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <!-- 父 POM：统一依赖版本（Spring Boot BOM）与插件配置 -->
@@ -35,8 +35,15 @@
         <commonmark.version>0.24.0</commonmark.version>
         <owasp-sanitizer.version>20240325.1</owasp-sanitizer.version>
         <jacoco.version>0.8.12</jacoco.version>
+        <checkstyle.version>3.6.0</checkstyle.version>
         <!-- 领域层行覆盖率门禁（适应度函数 FF-4）。学生版初始为 0，Sprint 4 前应提升到 0.80 -->
         <domain.coverage.minimum>0</domain.coverage.minimum>
+        <!-- SonarQube/SonarCloud 配置（主机与登录令牌由 CI 环境变量注入，见 ci.yml） -->
+        <sonar.projectKey>futureel_campus-overflow</sonar.projectKey>
+        <sonar.organization>futureel</sonar.organization>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+        <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
     <dependencyManagement>
@@ -187,6 +194,11 @@
                     <artifactId>jacoco-maven-plugin</artifactId>
                     <version>${jacoco.version}</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-checkstyle-plugin</artifactId>
+                    <version>${checkstyle.version}</version>
+                </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
@@ -216,6 +228,37 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <configuration>
+                    <configLocation>${maven.multiModuleProjectDirectory}/backend/checkstyle/checkstyle.xml</configLocation>
+                    <!-- 注入 config_loc，供 checkstyle.xml 中 SuppressionFilter 用 ${config_loc} 定位同目录 suppressions 文件 -->
+                    <propertyExpansion>config_loc=${maven.multiModuleProjectDirectory}/backend/checkstyle</propertyExpansion>
+                    <consoleOutput>true</consoleOutput>
+                    <failsOnError>true</failsOnError>
+                    <failOnViolation>true</failOnViolation>
+                    <violationSeverity>error</violationSeverity>
+                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>checkstyle-validate</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <!-- 覆盖插件默认的 Checkstyle 9.3，升级到 10.x 以完整支持 Java 21 语法 -->
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>10.21.4</version>
+                    </dependency>
+                </dependencies>
             </plugin>
         </plugins>
     </build>

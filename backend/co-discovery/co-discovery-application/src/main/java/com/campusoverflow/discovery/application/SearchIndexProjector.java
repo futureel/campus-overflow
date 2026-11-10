@@ -1,6 +1,5 @@
 package com.campusoverflow.discovery.application;
 
-import com.campusoverflow.discovery.domain.search.SearchDocument;
 import com.campusoverflow.discovery.domain.search.SearchIndex;
 import com.campusoverflow.qa.api.event.AnswerAcceptedEvent;
 import com.campusoverflow.qa.api.event.AnswerSubmittedEvent;
