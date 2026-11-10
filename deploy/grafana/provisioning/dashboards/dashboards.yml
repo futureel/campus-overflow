@@ -1,0 +1,14 @@
+apiVersion: 1
+
+# 仪表盘 provider：从挂载目录自动加载 JSON 仪表盘
+providers:
+  - name: campus-overflow
+    orgId: 1
+    folder: CampusOverflow
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: false
