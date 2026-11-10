@@ -1,5 +1,7 @@
-# 一键启动完整环境：docker compose -f deploy/docker-compose.yml --profile observability up -d --build
-# 仅启动应用（不含监控）：docker compose -f deploy/docker-compose.yml up -d --build
+# 一键启动完整环境（6 个服务，监控默认开启）：
+#   docker compose -f deploy/docker-compose.yml up -d --build
+# 仅启动应用与中间件、不启动监控（显式跳过监控两个服务）：
+#   docker compose -f deploy/docker-compose.yml up -d --build mysql redis backend web
 name: campus-overflow
 
 services:
@@ -41,9 +43,10 @@ services:
     build:
       context: ..
       dockerfile: deploy/backend.Dockerfile
+    image: ${BACKEND_IMAGE:-campus-overflow-backend:${APP_VERSION:-latest}}
     container_name: co-backend
     environment:
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES:-prod,demo}   # demo 会写入演示数据，正式使用时去掉
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES:-prod,demo}   # demo 会写入演示数据，正式使用时去掉 demo
       DB_HOST: mysql
       DB_USER: campus
       DB_PASSWORD: ${DB_PASSWORD:-campus_dev_pwd}
@@ -65,6 +68,7 @@ services:
     build:
       context: ..
       dockerfile: deploy/frontend.Dockerfile
+    image: ${WEB_IMAGE:-campus-overflow-web:${APP_VERSION:-latest}}
     container_name: co-web
     depends_on:
       backend: { condition: service_started }
@@ -73,21 +77,33 @@ services:
   prometheus:
     image: prom/prometheus:v2.54.1
     container_name: co-prometheus
-    profiles: ["observability"]
-    volumes: ["./prometheus.yml:/etc/prometheus/prometheus.yml:ro"]
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
     ports: ["9090:9090"]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9090/-/healthy"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   grafana:
     image: grafana/grafana:11.2.0
     container_name: co-grafana
-    profiles: ["observability"]
     environment:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
-    depends_on: [prometheus]
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    depends_on:
+      prometheus: { condition: service_healthy }
     ports: ["3000:3000"]
-    volumes: ["grafana-data:/var/lib/grafana"]
+    volumes:
+      - grafana-data:/var/lib/grafana
+      # 自动配置数据源与仪表盘（监控任务创建对应 provisioning 文件）
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
 
 volumes:
   mysql-data:
   redis-data:
+  prometheus-data:
   grafana-data:

@@ -1,5 +1,6 @@
-# CampusOverflow 持续集成流水线（对应 arc42 第 10 章适应度函数与第 7 章部署视图）
-name: CI
+# CampusOverflow CI/CD 流水线
+# 链路：push/PR → 后端测试(+条件 Sonar) → 前端构建 → 构建并推送 GHCR 镜像 → 条件化 SSH 自动部署
+name: CI/CD
 
 on:
   push:
@@ -7,13 +8,20 @@ on:
   pull_request:
     branches: [main, develop]
 
+# 可选 Secrets：
+#   SONAR_TOKEN            SonarCloud 令牌，未配置则跳过扫描
+#   SSH_HOST/SSH_USER/SSH_KEY  课程服务器 SSH 部署凭证，未配置则跳过自动部署
+env:
+  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  IMAGE_BACKEND: ghcr.io/${{ github.repository_owner }}/campus-overflow-backend
+  IMAGE_WEB: ghcr.io/${{ github.repository_owner }}/campus-overflow-web
+
 jobs:
   backend:
     name: 后端构建与验证
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: 配置 JDK 21
         uses: actions/setup-java@v4
         with:
@@ -21,26 +29,28 @@ jobs:
           distribution: temurin
           cache: maven
 
-      # 阶段 1：编译（模块依赖不成环由 Maven 保证）
+      # Checkstyle：规则文件随 Sprint 3 PR 合并后存在，缺失则跳过
+      - name: Checkstyle 静态检查
+        run: |
+          if [ -f backend/checkstyle/checkstyle.xml ]; then
+            mvn -B -f backend/pom.xml validate
+          else
+            echo "跳过：Checkstyle 配置将在 Sprint 3 PR 合并后启用"
+          fi
+
       - name: 编译
         run: mvn -B -f backend/pom.xml clean compile
-
-      # 阶段 2：单元测试（领域层 + 应用层，毫秒级，无外部依赖）
       - name: 单元测试
         run: mvn -B -f backend/pom.xml test
-
-      # 阶段 3：架构适应度函数（ArchUnit：FF-1~FF-6）
       - name: 架构约束检查
         run: mvn -B -f backend/pom.xml test -pl co-bootstrap -Dtest=ArchitectureTest -DfailIfNoTests=false
-
-      # 阶段 4：领域层覆盖率门禁（低于阈值直接失败）
       - name: 覆盖率门禁
         run: mvn -B -f backend/pom.xml verify -DskipITs -Djacoco.skip=false
-
-      # 阶段 5：集成测试（Testcontainers 拉起真实 MySQL + Redis）
       - name: 集成测试
         run: mvn -B -f backend/pom.xml verify -Dsurefire.skip=true
-
+      - name: SonarCloud 扫描
+        if: env.SONAR_TOKEN != ''
+        run: mvn -B -f backend/pom.xml sonar:sonar
       - name: 归档测试报告
         if: always()
         uses: actions/upload-artifact@v4
@@ -59,6 +69,14 @@ jobs:
       - name: 安装依赖
         working-directory: frontend
         run: npm install --no-audit --no-fund
+      - name: 静态检查（ESLint + Prettier）
+        working-directory: frontend
+        run: |
+          if [ -f eslint.config.js ]; then
+            npm run lint && npm run format:check
+          else
+            echo "跳过：ESLint 配置将在 Sprint 2 PR 合并后启用"
+          fi
       - name: 类型检查
         working-directory: frontend
         run: npm run typecheck
@@ -66,14 +84,66 @@ jobs:
         working-directory: frontend
         run: npm run build
 
-  images:
-    name: 容器镜像构建
+  docker:
+    name: 构建并推送镜像（GHCR）
     runs-on: ubuntu-latest
     needs: [backend, frontend]
     if: github.event_name == 'push'
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v4
-      - name: 构建后端镜像
-        run: docker build -f deploy/backend.Dockerfile -t campus-overflow-backend:${{ github.sha }} .
-      - name: 构建前端镜像
-        run: docker build -f deploy/frontend.Dockerfile -t campus-overflow-web:${{ github.sha }} .
+      - name: 登录 GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: 构建并推送后端镜像
+        run: |
+          docker build -f deploy/backend.Dockerfile -t "$IMAGE_BACKEND:${{ github.sha }}" -t "$IMAGE_BACKEND:latest" .
+          docker push "$IMAGE_BACKEND:${{ github.sha }}"
+          docker push "$IMAGE_BACKEND:latest"
+      - name: 构建并推送前端镜像
+        run: |
+          docker build -f deploy/frontend.Dockerfile -t "$IMAGE_WEB:${{ github.sha }}" -t "$IMAGE_WEB:latest" .
+          docker push "$IMAGE_WEB:${{ github.sha }}"
+          docker push "$IMAGE_WEB:latest"
+
+  deploy:
+    name: 部署到课程服务器
+    runs-on: ubuntu-latest
+    needs: docker
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: 检查 SSH 凭证
+        id: check
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+        run: |
+          if [ -z "$SSH_HOST" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "未配置 SSH 凭证，跳过自动部署（镜像已推送，可手动部署）"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: 通过 SSH 部署
+        if: steps.check.outputs.skip == 'false'
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          envs: IMAGE_BACKEND,IMAGE_WEB
+          script: |
+            set -e
+            APP_DIR=${{ vars.DEPLOY_PATH || '/opt/campus-overflow' }}
+            cd "$APP_DIR"
+            echo "${{ github.sha }}" > VERSION
+            # 让 compose 用 GHCR 上的指定版本镜像而非本地构建
+            export BACKEND_IMAGE="$IMAGE_BACKEND:${{ github.sha }}"
+            export WEB_IMAGE="$IMAGE_WEB:${{ github.sha }}"
+            docker compose -f deploy/docker-compose.yml pull
+            docker compose -f deploy/docker-compose.yml up -d --remove-orphans
+            docker image prune -f
