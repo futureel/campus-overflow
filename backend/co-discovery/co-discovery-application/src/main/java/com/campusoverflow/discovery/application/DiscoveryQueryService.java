@@ -1,15 +1,11 @@
 package com.campusoverflow.discovery.application;
 
-import com.campusoverflow.discovery.domain.search.RelatedQuestionPolicy;
-import com.campusoverflow.discovery.domain.search.SearchHit;
 import com.campusoverflow.discovery.domain.search.SearchIndex;
 import com.campusoverflow.discovery.domain.search.SearchPort;
 import com.campusoverflow.discovery.domain.search.SearchQuery;
 import com.campusoverflow.identity.api.IdentityApi;
-import com.campusoverflow.identity.api.UserSummary;
 import com.campusoverflow.shared.page.PageResult;
 import java.util.List;
-import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

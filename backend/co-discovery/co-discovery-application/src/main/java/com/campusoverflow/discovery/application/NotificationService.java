@@ -2,7 +2,6 @@ package com.campusoverflow.discovery.application;
 
 import com.campusoverflow.discovery.domain.notification.Notification;
 import com.campusoverflow.discovery.domain.notification.NotificationRepository;
-import com.campusoverflow.shared.domain.NotFoundException;
 import com.campusoverflow.shared.page.PageRequest;
 import com.campusoverflow.shared.page.PageResult;
 import com.campusoverflow.shared.security.Actor;

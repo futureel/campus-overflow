@@ -1,14 +1,11 @@
 package com.campusoverflow.reputation.application;
 
 import com.campusoverflow.identity.api.IdentityApi;
-import com.campusoverflow.identity.api.UserSummary;
 import com.campusoverflow.reputation.api.event.ReputationChangedEvent;
 import com.campusoverflow.reputation.domain.ReputationAccountRepository;
 import com.campusoverflow.shared.event.ProcessedEventStore;
 import java.time.Clock;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -1,6 +1,5 @@
 package com.campusoverflow.reputation.domain;
 
-import com.campusoverflow.shared.domain.BusinessRuleException;
 
 /**
  * 声誉账户。不变量：reputation 恒等于该用户所有账本流水 delta 之和（由对账任务 FF-8 验证）。

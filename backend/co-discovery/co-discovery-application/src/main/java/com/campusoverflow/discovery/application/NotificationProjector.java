@@ -1,20 +1,15 @@
 package com.campusoverflow.discovery.application;
 
-import com.campusoverflow.discovery.domain.notification.MentionParser;
-import com.campusoverflow.discovery.domain.notification.Notification;
 import com.campusoverflow.discovery.domain.notification.NotificationRepository;
 import com.campusoverflow.discovery.domain.notification.NotificationType;
 import com.campusoverflow.identity.api.IdentityApi;
-import com.campusoverflow.identity.api.UserSummary;
 import com.campusoverflow.qa.api.QaQueryApi;
-import com.campusoverflow.qa.api.QuestionRef;
 import com.campusoverflow.qa.api.event.AnswerAcceptedEvent;
 import com.campusoverflow.qa.api.event.AnswerEndorsedEvent;
 import com.campusoverflow.qa.api.event.AnswerSubmittedEvent;
 import com.campusoverflow.qa.api.event.CommentPostedEvent;
 import com.campusoverflow.reputation.api.event.BadgeAwardedEvent;
 import com.campusoverflow.reputation.api.event.BountyAwardedEvent;
-import java.util.Optional;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;

@@ -1,6 +1,5 @@
 package com.campusoverflow.discovery.domain.search;
 
-import java.util.Comparator;
 import java.util.List;
 
 /**

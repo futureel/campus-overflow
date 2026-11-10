@@ -2,7 +2,6 @@ package com.campusoverflow.discovery.domain.search;
 
 import com.campusoverflow.shared.domain.BusinessRuleException;
 import com.campusoverflow.shared.page.PageRequest;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 

@@ -1,6 +1,5 @@
 package com.campusoverflow.reputation.domain;
 
-import java.util.EnumSet;
 import java.util.Set;
 
 /** 徽章授予规则（纯函数，易于测试与扩展）。 */

@@ -1,13 +1,9 @@
 package com.campusoverflow.reputation.application;
 
 import com.campusoverflow.identity.api.IdentityApi;
-import com.campusoverflow.identity.api.UserSummary;
 import com.campusoverflow.reputation.domain.BadgeRepository;
 import com.campusoverflow.reputation.domain.LedgerRepository;
-import com.campusoverflow.reputation.domain.ReputationAccount;
 import com.campusoverflow.reputation.domain.ReputationAccountRepository;
-import com.campusoverflow.shared.domain.ForbiddenException;
-import com.campusoverflow.shared.domain.NotFoundException;
 import com.campusoverflow.shared.page.PageRequest;
 import com.campusoverflow.shared.page.PageResult;
 import com.campusoverflow.shared.security.Actor;

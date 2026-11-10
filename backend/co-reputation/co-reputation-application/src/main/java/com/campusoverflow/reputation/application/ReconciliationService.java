@@ -1,11 +1,8 @@
 package com.campusoverflow.reputation.application;
 
 import com.campusoverflow.reputation.domain.LedgerRepository;
-import com.campusoverflow.reputation.domain.ReputationAccount;
 import com.campusoverflow.reputation.domain.ReputationAccountRepository;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

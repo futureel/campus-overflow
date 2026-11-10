@@ -1,26 +1,16 @@
 package com.campusoverflow.reputation.application;
 
 import com.campusoverflow.identity.api.IdentityApi;
-import com.campusoverflow.identity.api.UserSummary;
 import com.campusoverflow.qa.api.QaQueryApi;
-import com.campusoverflow.qa.api.QuestionRef;
-import com.campusoverflow.reputation.api.event.BountyAwardedEvent;
-import com.campusoverflow.reputation.api.event.BountyClosedEvent;
-import com.campusoverflow.reputation.api.event.BountyOpenedEvent;
 import com.campusoverflow.reputation.domain.Bounty;
 import com.campusoverflow.reputation.domain.BountyRepository;
 import com.campusoverflow.reputation.domain.ReputationAccount;
 import com.campusoverflow.reputation.domain.ReputationAccountRepository;
-import com.campusoverflow.reputation.domain.ReputationReason;
 import com.campusoverflow.shared.audit.AuditTrail;
-import com.campusoverflow.shared.domain.ConflictException;
-import com.campusoverflow.shared.domain.NotFoundException;
-import com.campusoverflow.shared.event.EventIds;
 import com.campusoverflow.shared.event.IntegrationEventPublisher;
 import com.campusoverflow.shared.security.Actor;
 import java.time.Clock;
 import java.time.Instant;
-import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;

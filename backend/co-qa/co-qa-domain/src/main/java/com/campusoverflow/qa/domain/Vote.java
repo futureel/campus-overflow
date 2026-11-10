@@ -1,6 +1,5 @@
 package com.campusoverflow.qa.domain;
 
-import com.campusoverflow.shared.domain.BusinessRuleException;
 import java.time.Instant;
 
 /** 投票聚合：同一用户对同一内容仅一票（数据库唯一约束兜底），值为 +1 或 -1；撤销即删除。 */
